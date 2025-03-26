@@ -8,3 +8,5 @@ A Python-based blockchain with ECDSA signatures, P2P simulation, and a CLI.
 -License: e.g., MIT License.
 
 -File: Save as pychain.py.
+
+dipnot> This is just a demo 
