@@ -1,0 +1,199 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Blockchain Explorer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; padding: 20px; }
+        .card { margin-bottom: 20px; }
+        .transaction { border-bottom: 1px solid #eee; padding: 10px 0; }
+        .balance { font-size: 24px; font-weight: bold; }
+    </style>
+    <script>
+        async function createWallet() {
+            const response = await fetch('/wallet/new', {method: 'POST'});
+            const data = await response.json();
+            document.getElementById('walletInfo').innerHTML = `
+                Public Key: ${data.public_key}<br>
+                Private Key: ${data.private_key}
+            `;
+        }
+
+        async function checkBalance() {
+            const address = document.getElementById('balanceAddress').value;
+            const response = await fetch(`/balance/${address}`);
+            const data = await response.json();
+            document.getElementById('balanceInfo').innerHTML = `Balance: ${data.balance}`;
+        }
+
+        async function sendTransaction() {
+            const transaction = {
+                public_key: document.getElementById('senderPublicKey').value,
+                private_key: document.getElementById('senderPrivateKey').value,
+                recipient: document.getElementById('recipientKey').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                fee: parseFloat(document.getElementById('fee').value)
+            };
+            const response = await fetch('/transaction/new', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(transaction)
+            });
+            alert(response.ok ? 'Transaction sent!' : 'Transaction failed!');
+        }
+
+        async function mineBlock() {
+            const minerAddress = document.getElementById('minerAddress').value;
+            const response = await fetch('/mine', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({miner_address: minerAddress})
+            });
+            alert(response.ok ? 'Block mined!' : 'Mining failed!');
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Blockchain Explorer</h1>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Create New Wallet</div>
+                    <div class="card-body">
+                        <button class="btn btn-primary" onclick="createWallet()">Generate New Wallet</button>
+                        <div id="walletInfo" class="mt-3"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Check Balance</div>
+                    <div class="card-body">
+                        <input type="text" id="balanceAddress" class="form-control" placeholder="Enter wallet address">
+                        <button class="btn btn-info mt-2" onclick="checkBalance()">Check Balance</button>
+                        <div id="balanceInfo" class="mt-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">Send Transaction</div>
+                    <div class="card-body">
+                        <input type="text" id="senderPublicKey" class="form-control mb-2" placeholder="Sender's Public Key">
+                        <input type="text" id="senderPrivateKey" class="form-control mb-2" placeholder="Sender's Private Key">
+                        <input type="text" id="recipientKey" class="form-control mb-2" placeholder="Recipient's Public Key">
+                        <input type="number" id="amount" class="form-control mb-2" placeholder="Amount">
+                        <input type="number" id="fee" class="form-control mb-2" placeholder="Fee">
+                        <button class="btn btn-success" onclick="sendTransaction()">Send Transaction</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Mine Block</div>
+                    <div class="card-body">
+                        <input type="text" id="minerAddress" class="form-control" placeholder="Miner's address">
+                        <button class="btn btn-warning mt-2" onclick="mineBlock()">Mine New Block</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">Blockchain Explorer</div>
+            <div class="card-body" id="chainInfo"></div>
+        </div>
+    </div>
+
+    <script>
+        async function createWallet() {
+            const response = await fetch('/wallet/new', { method: 'POST' });
+            const wallet = await response.json();
+            document.getElementById('walletInfo').innerHTML = `
+                <div class="alert alert-success">
+                    <strong>Public Key:</strong> ${wallet.public_key}<br>
+                    <strong>Private Key:</strong> ${wallet.private_key}
+                </div>`;
+        }
+
+        async function sendTransaction() {
+            const transaction = {
+                public_key: document.getElementById('senderPublicKey').value,
+                private_key: document.getElementById('senderPrivateKey').value,
+                recipient: document.getElementById('recipientKey').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                fee: parseFloat(document.getElementById('fee').value)
+            };
+
+            try {
+                const response = await fetch('/transaction/new', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(transaction)
+                });
+                const result = await response.json();
+                alert(result.message);
+            } catch (error) {
+                alert('Error sending transaction');
+            }
+        }
+
+        async function mineBlock() {
+            const minerAddress = document.getElementById('minerAddress').value;
+            try {
+                const response = await fetch('/mine', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ miner_address: minerAddress })
+                });
+                const result = await response.json();
+                alert(result.message);
+                loadChain();
+            } catch (error) {
+                alert('Error mining block');
+            }
+        }
+
+        async function checkBalance() {
+            const address = document.getElementById('balanceAddress').value;
+            const response = await fetch(`/balance/${address}`);
+            const result = await response.json();
+            document.getElementById('balanceInfo').innerHTML = `
+                <div class="alert alert-info">
+                    <strong>Balance:</strong> ${result.balance}
+                </div>`;
+        }
+
+        async function loadChain() {
+            const response = await fetch('/chain');
+            const data = await response.json();
+            const chainHtml = data.chain.map(block => `
+                <div class="card mb-3">
+                    <div class="card-header">Block #${block.index}</div>
+                    <div class="card-body">
+                        <p><strong>Hash:</strong> ${block.hash}</p>
+                        <p><strong>Previous Hash:</strong> ${block.previous_hash}</p>
+                        <p><strong>Timestamp:</strong> ${new Date(block.timestamp * 1000).toLocaleString()}</p>
+                        <p><strong>Transactions:</strong></p>
+                        <div class="transactions">
+                            ${block.transactions.map(tx => `
+                                <div class="transaction">
+                                    From: ${tx.sender}<br>
+                                    To: ${tx.recipient}<br>
+                                    Amount: ${tx.amount}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('chainInfo').innerHTML = chainHtml;
+        }
+
+        
+        loadChain();
+    </script>
+</body>
+</html>
