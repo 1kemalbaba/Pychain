@@ -1,5 +1,5 @@
 # PychainDescription: 
-A Python-based blockchain with ECDSA signatures, P2P simulation, and a CLI.
+I built PyChain, a lightweight blockchain in Python using ECDSA signatures for security, a P2P simulation, and a CLI for interaction. It’s a basic, educational tool to explore blockchain concepts.
 
 -Requirements: pip install ecdsa
 
@@ -9,4 +9,4 @@ A Python-based blockchain with ECDSA signatures, P2P simulation, and a CLI.
 
 -File: Save as pychain.py.
 
-dipnot> This is just a demo 
+i would like to create my own blockchain in future.
